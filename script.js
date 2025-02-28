@@ -1,48 +1,53 @@
-let siswaList = [];
+let siswaList = JSON.parse(localStorage.getItem("siswaList")) || [];
+
+// Menyimpan data ke localStorage
+function simpanData() {
+    localStorage.setItem("siswaList", JSON.stringify(siswaList));
+}
 
 // Menambahkan siswa (otomatis ada di semua bulan)
 function tambahSiswa() {
     let namaInput = document.getElementById("namaSiswa");
     let nama = namaInput.value.trim();
     if (nama !== "") {
-        // Cek apakah siswa sudah ada
         let siswaSudahAda = siswaList.some(s => s.nama === nama);
         if (!siswaSudahAda) {
             siswaList.push({
                 nama: nama,
-                nominal: 0,
-                lunas: false,
                 bulan: {} // Data pembayaran per bulan
             });
+            simpanData();
+            renderSiswa();
         }
         namaInput.value = "";
-        renderSiswa();
     }
 }
 
 // Mengubah status lunas
 function toggleLunas(index, bulan) {
     siswaList[index].bulan[bulan].lunas = !siswaList[index].bulan[bulan].lunas;
+    simpanData();
     updatePemasukan();
 }
 
 // Menghapus siswa dari daftar
 function hapusSiswa(index) {
     siswaList.splice(index, 1);
-    updatePemasukan();
+    simpanData();
     renderSiswa();
+    updatePemasukan();
 }
 
 // Mengupdate nominal pembayaran siswa
 function updateNominal(index, bulan, value) {
     let nominal = parseInt(value) || 0;
-    
-    // Jika bulan belum ada, buatkan entri baru
+
     if (!siswaList[index].bulan[bulan]) {
         siswaList[index].bulan[bulan] = { nominal: 0, lunas: false };
     }
 
     siswaList[index].bulan[bulan].nominal = nominal;
+    simpanData();
     updatePemasukan();
 }
 
@@ -73,7 +78,6 @@ function renderSiswa() {
     let bulanTerpilih = document.getElementById("bulan").value;
 
     siswaList.forEach((siswa, index) => {
-        // Jika bulan belum ada, buat entri default
         if (!siswa.bulan[bulanTerpilih]) {
             siswa.bulan[bulanTerpilih] = { nominal: 0, lunas: false };
         }
@@ -88,7 +92,6 @@ function renderSiswa() {
         daftarSiswa.appendChild(tr);
     });
 
-    // Perbarui tampilan nama bulan di bagian keuangan
     document.getElementById("bulanTitle").textContent = document.getElementById("bulan").selectedOptions[0].text;
     updatePemasukan();
 }
